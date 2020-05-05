@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 /* eslint-disable consistent-return */
 const Discord = require('discord.js');
+const fs = require('fs');
 
 const cooldowns = new Discord.Collection();
 
@@ -61,6 +62,31 @@ The member **${message.author.tag}** just mentioned ${message.mentions.members.s
 They have been a member of the server for ${client.humanTimeBetween(Date.now(), message.member.joinedTimestamp)}.
 If you believe this member is a mention spammer bot, please ban them with the command:
 \`.ban ${message.author.id} Raid Mention Spammer\``);
+    }
+  }
+
+  // Banned words filter
+  const modMailCh = client.guilds.cache.first().channels.cache.get(client.config.modMail);
+  const text = fs.readFileSync('./src/bannedwords.txt', 'utf-8');
+  const bannedWords = text.split('\n');
+
+  if (message.guild && message.content) {
+    // Check if message includes
+    for (let i = 0; i < bannedWords.length; i++) {
+      const messageLower = message.content.toLowerCase();
+      const bannedWordLower = bannedWords[i].toLowerCase();
+
+      if (messageLower.indexOf(bannedWordLower) === -1) {
+        if (!message.deleted && message.deletable) {
+          // Inform mod mail TODO
+          modMailCh.send('Message deleted');
+
+          message.delete();
+        }
+
+        // Don't need to check the whole list so move to the next message
+        break;
+      }
     }
   }
 
